@@ -1,0 +1,16 @@
+server:
+  addr: localhost
+  port: 8000
+
+database:
+  name: $DB_NAME
+  user: $DB_USER
+  port: $DB_PORT
+  host: "0.0.0.0"
+  password: $DB_PASSWORD
+  ssl: "disable"
+  #$DB_SSLMODE
+
+proxy:
+  addr: localhost
+  port: 8080
