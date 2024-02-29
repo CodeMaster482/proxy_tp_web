@@ -1,10 +1,13 @@
 package http
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"proxy/internal/api/usecase"
 	"proxy/internal/models"
 	"proxy/pkg/logger"
@@ -99,10 +102,39 @@ func (h Handler) ScanRequest(ctx *gin.Context) {
 		return
 	}
 
-	scanResult, err := h.Usecase.ScanRequest(ctx.Request.Context(), id)
+	file, err := os.Open("resources/params")
 	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	request, err := h.Usecase.GetRequestById(ctx.Request.Context(), id)
+	if err != nil {
+		var errNoRequests *models.ErrRequestNotFuound
+		if errors.As(err, &errNoRequests) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"request_scan": scanResult})
+
+	scanner := bufio.NewScanner(file)
+	count := 0
+	var hiddenParams []string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		param, err := h.Usecase.ScanRequest(ctx.Request.Context(), line, request)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		count++
+		if param != "" {
+			hiddenParams = append(hiddenParams, param)
+		}
+	}
+	ctx.JSON(http.StatusOK, gin.H{"hidden_params": hiddenParams})
 }

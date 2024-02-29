@@ -6,11 +6,11 @@ database:
   name: $DB_NAME
   user: $DB_USER
   port: $DB_PORT
-  host: "0.0.0.0"
+  host: "request-db"
   password: $DB_PASSWORD
   ssl: "disable"
   #$DB_SSLMODE
 
 proxy:
-  addr: localhost
+  addr: 127.0.0.1
   port: 8080

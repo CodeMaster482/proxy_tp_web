@@ -48,7 +48,7 @@ var (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	//log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

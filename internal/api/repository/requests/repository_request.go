@@ -17,7 +17,7 @@ const (
 	RequestsAll = `SELECT * FROM request ORDER BY created_at`
 	RequestById = `SELECT * FROM request WHERE id=$1`
 	AddRequest  = `INSERT INTO request (method, host, path, headers, query_params, post_params, cookies, body) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
-	AddResponse = `INSERT INTO response (request_id, status_code, http_version, headers, body) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	AddResponse = `INSERT INTO response (request_id, status_code, headers, body) VALUES ($1, $2, $3, $4) RETURNING id`
 	/* INSERT INTO request (method, "url", body, headers)
 	   VALUES ('GET', 'https://example.com', 'body content', '{"Content-Type": "application/json"}'); */
 )

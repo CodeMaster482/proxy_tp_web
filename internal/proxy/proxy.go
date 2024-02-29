@@ -5,11 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"sync"
 	"syscall"
 
 	"proxy/internal/api/usecase"
@@ -62,8 +62,6 @@ func (p *Proxy) handleHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	r.RequestURI = ""
 
-	fmt.Println("<<<<<< HTTP2 REQUEST >>>>>")
-
 	client := &http.Client{
 		Transport: &ProxyTransport{},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -79,8 +77,6 @@ func (p *Proxy) handleHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to proxy %v", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println("<<<<<< HTTP3 REQUEST >>>>>")
 
 	if bytes, err := httputil.DumpResponse(resp, false); err == nil {
 		p.Logger.Infof("target response:\n%s\n", string(bytes))
@@ -158,7 +154,16 @@ func (p *Proxy) handleHTTPS(w http.ResponseWriter, proxyReq *http.Request) {
 	tlsConn := tls.Server(clientConn, tlsConfig)
 	defer tlsConn.Close()
 
-	p.handleTLSConnection(tlsConn, proxyReq)
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		p.handleTLSConnection(tlsConn, proxyReq)
+	}()
+
+	// Wait for the goroutine to finish before closing tlsConn
+	wg.Wait()
 }
 
 func (p *Proxy) handleTLSConnection(tlsConn net.Conn, proxyReq *http.Request) {
@@ -182,13 +187,13 @@ func (p *Proxy) handleTLSConnection(tlsConn net.Conn, proxyReq *http.Request) {
 			break
 		}
 
-		p.handleHTTPRequest(r, tlsConn, proxyReq)
+		go p.handleHTTPRequest(r, tlsConn, proxyReq)
 	}
 }
 
 func (p *Proxy) handleHTTPRequest(r *http.Request, tlsConn net.Conn, proxyReq *http.Request) {
 	if b, err := httputil.DumpRequest(r, false); err == nil {
-		p.Logger.Errorf("incoming request:\n%s\n", string(b))
+		p.Logger.Infof("incoming request:\n%s\n", string(b))
 	}
 
 	cpReq := *r

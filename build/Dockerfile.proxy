@@ -1,1 +1,19 @@
-FROM golang:alpine3.19 as builder
+FROM golang:1.22.0-alpine AS builder
+
+COPY . /github.com/web-proxy/
+WORKDIR /github.com/web-proxy/
+
+RUN go mod download
+RUN go clean --modcache
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -o proxy ./cmd/proxy/main.go
+
+RUN chmod +x ./proxy
+
+FROM scratch AS runner
+
+WORKDIR /docker-proxy/
+COPY --from=builder /github.com/web-proxy/proxy .
+
+EXPOSE 8080
+
+ENTRYPOINT ["./proxy", "-ca_cert_file", "certs/ca.crt", "-ca_key_file", "certs/ca.key"]

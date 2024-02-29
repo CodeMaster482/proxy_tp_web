@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS request (
 CREATE TABLE IF NOT EXISTS response (
 	id 				SERIAL 		PRIMARY KEY 				NOT NULL,
 	request_id		INTEGER									NOT NULL,
-	http_version 	NUMERIC(3,1)							NOT NULL,
 	status_code 	INTEGER									NOT NULL,
 	headers 		JSONB,
 	body 			TEXT,

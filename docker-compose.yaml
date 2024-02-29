@@ -57,26 +57,39 @@ services:
        start_period: 10s
      networks:
        - burp-suite-net
-  
 
-  #api:
-  #  container_name: api
-  #  build:
-  #    context: .
-  #    dockerfile: build/category.Dockerfile
-  #  env_file:
-  #    - .env
-  #  restart: always
-  #  ports:
-  #    - "8080:8080"
-  #  volumes:
-  #    - ./.env:/docker-hammywallet/.env
-  #    - ./api-logs:/docker-hammywallet/logs
-  #    - type: bind
-  #      source: /home/ubuntu/frontend/images
-  #      target: /images
-  #  depends_on:
-  #    db: {condition: service_healthy}
-  #  networks:
-  #    - burp-suite-net
-  #
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: build/Dockerfile.api
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - .env:/docker-api/.env
+      - ./config.yaml:/docker-api/config.yaml
+      - ./api-logs:/docker-api/logs
+    depends_on:
+      request-db: {condition: service_healthy}
+    networks:
+      - burp-suite-net
+  
+  proxy:
+    container_name: proxy
+    build: 
+     context: .
+     dockerfile: build/Dockerfile.proxy
+    ports:
+      - 8080:8080
+    restart: always
+    volumes:
+       - .env:/docker-proxy/.env
+       - ./config.yaml:/docker-proxy/config.yaml
+       - type: bind
+         source: ./certs
+         target: /docker-proxy/certs
+    depends_on:
+      request-db: {condition: service_healthy}
+    networks:
+      - burp-suite-net
