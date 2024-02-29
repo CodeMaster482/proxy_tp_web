@@ -1,5 +1,5 @@
 server:
-  addr: localhost
+  addr: api
   port: 8000
 
 database:
@@ -9,8 +9,7 @@ database:
   host: "request-db"
   password: $DB_PASSWORD
   ssl: "disable"
-  #$DB_SSLMODE
 
 proxy:
-  addr: 127.0.0.1
+  addr: proxy
   port: 8080
