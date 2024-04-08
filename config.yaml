@@ -1,0 +1,15 @@
+server:
+  addr: api
+  port: 8000
+
+database:
+  name: $DB_NAME
+  user: $DB_USER
+  port: $DB_PORT
+  host: "request-db"
+  password: $DB_PASSWORD
+  ssl: "disable"
+
+proxy:
+  addr: proxy
+  port: 8080
